@@ -25,7 +25,7 @@ DB_PATH = os.environ.get("CUA_HANG_DB", "cua_hang.db")
 # ---- Độ trễ (giây): chỉnh các số này nếu muốn nhanh hơn hoặc chậm hơn ----
 TRE_DANG_NHAP = 1.0      # màn hình "Đang đăng nhập..."
 TRE_DANG_XUAT = 0.8      # màn hình "Đang đăng xuất..."
-TRE_DOI_TRANG = 0.3      # chờ ngắn khi chuyển trang
+TRE_DOI_TRANG = 0.0      # 0 = chuyển trang ngay, mượt nhất (tăng lên 0.2-0.3 nếu muốn có nhịp chờ)
 THOI_GIAN_THONG_BAO = 3  # thông báo nhỏ hiện bao lâu (giây)
 
 # Hiệu ứng chuyển động (chỉ dùng CSS). Muốn tắt hết: đặt HIEU_UNG = False
@@ -34,24 +34,27 @@ CSS_HIEU_UNG = """
 <style>
 :root { --luot: cubic-bezier(0.22, 1, 0.36, 1); }   /* đường cong lướt êm, vào nhanh rồi giảm tốc */
 
-@keyframes luot_len   { from {opacity: 0; transform: translateY(18px);}  to {opacity: 1; transform: none;} }
+@keyframes luot_len   { from {opacity: 0; transform: translateY(10px);}  to {opacity: 1; transform: none;} }
 @keyframes luot_phai  { from {opacity: 0; transform: translateX(-28px);} to {opacity: 1; transform: none;} }
 @keyframes luot_trai  { from {opacity: 0; transform: translateX(28px);}  to {opacity: 1; transform: none;} }
 @keyframes hien_ra    { from {opacity: 0; transform: scale(0.96);}       to {opacity: 1; transform: none;} }
 
-/* Thanh bên trượt vào từ trái */
-[data-testid="stSidebarContent"] { animation: luot_phai 0.6s var(--luot) both; }
+/* Khi Streamlit đang tính lại, nó làm mờ nội dung cũ rồi hiện nội dung mới => thấy nháy. Giữ nguyên độ rõ để đỡ giật. */
+[data-stale="true"] { opacity: 1 !important; transition: none !important; }
+
+/* Thanh bên trượt vào từ trái (chỉ một lần khi mở app, không chạy lại mỗi lần bấm) */
+[data-testid="stSidebarContent"] { animation: luot_phai 0.5s var(--luot) 1 both; }
 
 /* Tiêu đề trang lướt xuống nhẹ, từng khối nội dung lướt lên lần lượt */
 [data-testid="stMainBlockContainer"] h1, [data-testid="stMainBlockContainer"] h2 { animation: luot_phai 0.55s var(--luot) both; }
-[data-testid="stMainBlockContainer"] [data-testid="stElementContainer"] { animation: luot_len 0.6s var(--luot) both; }
+[data-testid="stMainBlockContainer"] [data-testid="stElementContainer"] { animation: luot_len 0.4s var(--luot) both; }
 [data-testid="stMainBlockContainer"] [data-testid="stElementContainer"]:nth-child(1) { animation-delay: 0.00s; }
-[data-testid="stMainBlockContainer"] [data-testid="stElementContainer"]:nth-child(2) { animation-delay: 0.06s; }
-[data-testid="stMainBlockContainer"] [data-testid="stElementContainer"]:nth-child(3) { animation-delay: 0.12s; }
-[data-testid="stMainBlockContainer"] [data-testid="stElementContainer"]:nth-child(4) { animation-delay: 0.18s; }
-[data-testid="stMainBlockContainer"] [data-testid="stElementContainer"]:nth-child(5) { animation-delay: 0.24s; }
-[data-testid="stMainBlockContainer"] [data-testid="stElementContainer"]:nth-child(6) { animation-delay: 0.30s; }
-[data-testid="stMainBlockContainer"] [data-testid="stElementContainer"]:nth-child(n+7) { animation-delay: 0.36s; }
+[data-testid="stMainBlockContainer"] [data-testid="stElementContainer"]:nth-child(2) { animation-delay: 0.03s; }
+[data-testid="stMainBlockContainer"] [data-testid="stElementContainer"]:nth-child(3) { animation-delay: 0.06s; }
+[data-testid="stMainBlockContainer"] [data-testid="stElementContainer"]:nth-child(4) { animation-delay: 0.09s; }
+[data-testid="stMainBlockContainer"] [data-testid="stElementContainer"]:nth-child(5) { animation-delay: 0.12s; }
+[data-testid="stMainBlockContainer"] [data-testid="stElementContainer"]:nth-child(6) { animation-delay: 0.15s; }
+[data-testid="stMainBlockContainer"] [data-testid="stElementContainer"]:nth-child(n+7) { animation-delay: 0.18s; }
 
 /* Khung đăng nhập hiện ra dạng phóng nhẹ */
 [data-testid="stVerticalBlockBorderWrapper"] { animation: hien_ra 0.6s var(--luot) both; }
@@ -67,9 +70,18 @@ button { transition: transform 0.25s var(--luot), box-shadow 0.25s var(--luot), 
 button:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 16px rgba(0, 0, 0, 0.28); }
 button:active:not(:disabled) { transform: translateY(0) scale(0.97); box-shadow: none; }
 
+/* Menu trang: mỗi mục là một viên, mục đang chọn được tô nền, đổi mục thì nền chuyển mượt */
+[data-testid="stSidebar"] [role="radiogroup"] { gap: 4px; }
+[data-testid="stSidebar"] [role="radiogroup"] label {
+    padding: 8px 12px; margin: 0; width: 100%; border-radius: 10px; cursor: pointer;
+    transition: background-color 0.3s var(--luot), transform 0.3s var(--luot), box-shadow 0.3s var(--luot);
+}
+[data-testid="stSidebar"] [role="radiogroup"] label:hover { background-color: rgba(255, 75, 75, 0.08); }
+[data-testid="stSidebar"] [role="radiogroup"] label:has(input:checked) {
+    background-color: rgba(255, 75, 75, 0.16); transform: translateX(6px); box-shadow: inset 3px 0 0 #ff4b4b;
+}
 /* Mục chọn trang ở thanh bên: dịch nhẹ sang phải khi rê chuột */
-[data-testid="stSidebar"] [role="radiogroup"] label { transition: transform 0.25s var(--luot), background-color 0.25s; border-radius: 8px; }
-[data-testid="stSidebar"] [role="radiogroup"] label:hover { transform: translateX(6px); }
+[data-testid="stSidebar"] [role="radiogroup"] label:hover:not(:has(input:checked)) { transform: translateX(3px); }
 
 /* Ô nhập, ô chọn, bảng: viền và bóng chuyển mượt */
 input, textarea, [data-baseweb="select"] > div, [data-testid="stDataFrame"], [data-testid="stExpander"] {
@@ -501,7 +513,7 @@ def main():
             st.rerun()
 
     # Đổi trang: chờ một nhịp ngắn cho chuyển cảnh nhẹ nhàng
-    if st.session_state.get("trang_truoc") not in (None, trang):
+    if TRE_DOI_TRANG > 0 and st.session_state.get("trang_truoc") not in (None, trang):
         with st.spinner("Đang tải..."):
             time.sleep(TRE_DOI_TRANG)
     st.session_state["trang_truoc"] = trang
