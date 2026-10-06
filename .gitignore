@@ -1,0 +1,30 @@
+# Python
+__pycache__/
+*.pyc
+venv/
+.venv/
+.ipynb_checkpoints/
+.pytest_cache/
+
+# Dữ liệu thật và bí mật: KHÔNG bao giờ đưa lên mạng
+*.db
+*.sqlite
+*.sqlite3
+.env
+.env.*
+.streamlit/secrets.toml
+
+# File lịch/Excel (có thể chứa tên nhân viên thật)
+*.xlsx
+*.xls
+*.csv
+
+# File ghi chú cá nhân / do AI tạo
+KE_HOACH_DU_AN.md
+CLAUDE.md
+.claude/
+*.local.md
+
+# Công cụ soạn code
+.vscode/
+.idea/
