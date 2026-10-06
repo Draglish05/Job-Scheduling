@@ -19,7 +19,7 @@ Python, OR-Tools CP-SAT, SQLite, Streamlit, pytest.
 pip install -r requirements.txt
 streamlit run app.py
 ```
-Lần đầu mở, app sẽ yêu cầu tạo tài khoản quản lý. Dữ liệu lưu trong file `cua_hang.db` trên máy bạn (file này không được đưa lên Git).
+Lần đầu mở, app sẽ yêu cầu tạo tài khoản quản lý. Dữ liệu lưu trong file `cua_hang.db` 
 
 ## Chạy kiểm thử
 ```
